@@ -1,0 +1,22 @@
+{
+  "name": "hotel-reservation-app",
+  "version": "1.0.0",
+  "description": "App that can be used to reserve room(s) in a hotel. Payments can also be made in the app. built with NODE, EXPRESS, POSTGRES SQL",
+  "license": "ISC",
+  "author": "Edeogu Ogomegbunam",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^7.0.3",
+    "pg": "^8.16.0"
+  }
+}
