@@ -45,24 +45,24 @@ exports.login = async (req, res, next) => {
         let { username, password } = req.body;
         username = username.trim().toLowerCase();
 
-        const user = await userModel.findUserByUsername(username);
+        const loginUser = await userModel.findUserByUsername(username);
 
         if (!user) next(new AppError('Invalid email or password', 401));
 
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) next(AppError('Invalid username or password', 401))
 
-        const loginUser = {
-            id: user.id,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            email: user.email,
-            phone: user.phone,
-            username: user.username,
-            role: user.role,
-            created_at: user.created_at
+        const user = {
+            id: loginUser.id,
+            firstname: loginUser.firstname,
+            lastname: loginUser.lastname,
+            email: loginUser.email,
+            phone: loginUser.phone,
+            username: loginUser.username,
+            role: loginUser.role,
+            created_at: loginUser.created_at
         }
-        const token = accessToken(loginUser)
+        const token = accessToken(user)
 
         res.status(200).json({
             status: 'success',
@@ -95,8 +95,7 @@ exports.forgotPassword = async (req, res, next) => {
 
         // send email
         try {
-            console.log(user);
-            
+           
             await new Email(user, resetUrl).sendResetMail();
 
         } catch (err) {
@@ -124,7 +123,9 @@ exports.resetPassword = async (req, res, next) => {
         }
 
         const newPassword = req.body.password;
-        await userModel.updateUserPassword(user.id, newPassword);
+        console.log('user id from reset controller :',user.id);
+        
+        await userModel.updateUserPassword(newPassword, user.id)
         await userModel.deleteResetToken(user.id);
         const token = accessToken(user)
 

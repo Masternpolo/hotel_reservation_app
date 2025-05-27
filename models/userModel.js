@@ -25,7 +25,7 @@ exports.findUserByResetToken = async (resetToken) => {
         const result = await pool.query(query, value);
         if (result.rows.length > 0) {
             const user = await exports.getUserById(result.rows[0].user_id);
-            return user
+            return user;
         }
         return null;
     } catch (err) {
@@ -75,7 +75,7 @@ exports.getAllUsers = async () => {
 // get user from the database using id
 exports.getUserById = async (id) => {
     try {
-       const query = 'SELECT id, firstname, lastname, email, phone, username, role FROM users WHERE id = $1 ';
+        const query = 'SELECT id, firstname, lastname, email, phone, username, role FROM users WHERE id = $1 ';
         const values = [id];
         const result = await pool.query(query, values);
         return result.rows[0];
@@ -111,18 +111,18 @@ exports.updateUser = async (id, name, email, phone, username) => {
 // update user in the database using id 
 exports.updateUserPassword = async (password, userId) => {
     try {
-        console.log(typeof password);
-        password = password.toString();
+        password = password+'';
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'UPDATE users SET password = $1, password_changed_at = NOW() WHERE id = $2';
         const values = [hashedPassword, userId];
         await pool.query(query, values);
+
     } catch (error) {
         throw error;
     }
 };
 
-exports.createPasswordresetToken =  () => {
+exports.createPasswordresetToken = () => {
     const resetToken = crypto.randomBytes(32).toString('hex');
     return resetToken;
 }
