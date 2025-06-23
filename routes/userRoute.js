@@ -23,19 +23,27 @@ const validateUserLogin = () => [
 router.post('/login', validateUserLogin(), authController.login);
 router.post('/signup', validateUserRegistration(), authController.signUp);
 
+
 router.post('/forgotpassword', validateUserLogin(), authController.forgotPassword);
 router.post('/resetpassword/:token', validateUserRegistration(), authController.resetPassword);
 
-// router.route('/')
-//   .get(protect, isAdmin, userController.getAllUsers)
-//   .post(protect, isAdmin, userController.createUser);
+router.use(protect)
 
-// router
-//   .route('/:id')
-//   .get(protect, isAdmin, userController.getUserById)
-//   .patch(protect, isAdmin, userController.updateUser)
-//   .delete(protect, isAdmin, userController.deleteUser);
+router.patch('/updateMyPassword', protect, authController.updateMyPassword);
+router.patch('/updateMe', protect, userController.updateMe);
 
+
+router.use(isAdmin);
+
+router.route('/')
+  .get(protect, userController.getAllUsers)
+  .post(protect, userController.createUser);
+
+router
+  .route('/:id')
+  .get(protect, isAdmin, userController.getUserById)
+  .patch(protect, isAdmin, userController.updateMe)
+  .delete(protect, isAdmin, userController.deleteUser);
 
 
 module.exports = router;

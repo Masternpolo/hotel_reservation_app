@@ -55,8 +55,8 @@ exports.register = async (firstname, lastname, email, phone, username, password)
         const values = [firstname, lastname, email, phone, username, hashedPassword];
         const result = await pool.query(query, values);
         return result.rows[0];
-    } catch (error) {
-        throw error; // Rethrow the error to be handled in the controller
+    } catch (err) {
+        throw err; 
     }
 };
 
@@ -67,20 +67,20 @@ exports.getAllUsers = async () => {
         const query = 'SELECT id, username, email, created_at FROM users';
         const result = await pool.query(query);
         return result.rows;
-    } catch (error) {
-        throw error;
+    } catch (err) {
+        throw err;
     }
 }
 
 // get user from the database using id
 exports.getUserById = async (id) => {
     try {
-        const query = 'SELECT id, firstname, lastname, email, phone, username, role FROM users WHERE id = $1 ';
+        const query = 'SELECT id, email, password, role FROM users WHERE id = $1 ';
         const values = [id];
         const result = await pool.query(query, values);
         return result.rows[0];
-    } catch (error) {
-        throw error;
+    } catch (err) {
+        throw err;
     }
 };
 
@@ -90,35 +90,33 @@ exports.deleteUser = async (id) => {
         const query = 'DELETE FROM users WHERE id = $1';
         const values = [id];
         await pool.query(query, values);
-
-    } catch (error) {
-        throw error;
+    } catch (err) {
+        throw err;
     }
 }
 
 // update user in the database using id 
-exports.updateUser = async (id, name, email, phone, username) => {
+exports.updateUser = async (id, firstname, lastname, email, phone, username) => {
     try {
-        const query = 'UPDATE users SET name = $1, email = $2, phone = $3, username = $4 WHERE id = $5 RETURNING id, username, email';
-        const values = [name, email, phone, username, id];
+        const query = 'UPDATE users SET firstname = $1, lastname = $2, email = $3, phone = $4, username = $5 WHERE id = $6';
+        const values = [firstname, lastname, email, phone, username, id];
         const result = await pool.query(query, values);
         return result.rows[0];
-    } catch (error) {
-        throw error;
+    } catch (err) {
+        throw err;
     }
 };
 
-// update user in the database using id 
+// update user password in the database using id 
 exports.updateUserPassword = async (password, userId) => {
     try {
-        password = password+'';
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'UPDATE users SET password = $1, password_changed_at = NOW() WHERE id = $2';
         const values = [hashedPassword, userId];
         await pool.query(query, values);
-
-    } catch (error) {
-        throw error;
+    } catch (err) {
+        throw err;
     }
 };
 
@@ -128,12 +126,16 @@ exports.createPasswordresetToken = () => {
 }
 
 exports.saveResetToken = async (userId, resetToken) => {
-    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    try {
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     const sql = 'INSERT INTO password_resets (user_id, token, expires_at) VALUES ($1, $2, $3)'
     const values = [userId, hashedToken, passwordResetExpires];
     await pool.query(sql, values);
+    } catch (err) {
+        throw err
+    }
 }
 
 exports.deleteResetToken = async (userId) => {

@@ -47,10 +47,10 @@ exports.login = async (req, res, next) => {
 
         const loginUser = await userModel.findUserByUsername(username);
 
-        if (!user) next(new AppError('Invalid email or password', 401));
+        if (!loginUser) return next(new AppError('Invalid email or password', 401));
 
-        const isValidPassword = await bcrypt.compare(password, user.password);
-        if (!isValidPassword) next(AppError('Invalid username or password', 401))
+        const isValidPassword = await bcrypt.compare(password, loginUser.password);
+        if (!isValidPassword) return next(new AppError('Invalid username or password', 401))
 
         const user = {
             id: loginUser.id,
@@ -91,7 +91,6 @@ exports.forgotPassword = async (req, res, next) => {
         // save token to db
         await userModel.saveResetToken(user.id, resetToken);
         const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${resetToken}`;
-        const message = `Click the link to reset your password: ${resetUrl}. If you didnt request this, please ignore the mail.`;
 
         // send email
         try {
@@ -115,15 +114,13 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
     try {
+        const newPassword = req.body.password;
         const resetToken = req.params.token;
         const user = await userModel.findUserByResetToken(resetToken);
 
         if (!user) {
             return next(new AppError('Token is invalid or has expired', 400));
         }
-
-        const newPassword = req.body.password;
-        console.log('user id from reset controller :',user.id);
         
         await userModel.updateUserPassword(newPassword, user.id)
         await userModel.deleteResetToken(user.id);
@@ -137,6 +134,32 @@ exports.resetPassword = async (req, res, next) => {
             }
         });
 
+    } catch (err) {
+        next(err);
+    }
+}
+
+exports.updateMyPassword = async (req, res, next) => {
+    try {
+        const userId = req.user.id;
+        const { currentPassword, newPassword } = req.body;
+
+        const user = await userModel.getUserById(userId);
+        if (!user) {
+            return next(new AppError('User not found', 404));
+        }
+
+        const isValidPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!isValidPassword) {
+            return next(new AppError('Your current password is wrong', 401));
+        }
+
+        await userModel.updateUserPassword(newPassword, userId);
+        const token = accessToken(user)
+        res.status(200).json({
+            status: 'success',
+            token
+        });
 
     } catch (err) {
         next(err);

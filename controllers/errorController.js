@@ -7,6 +7,8 @@ const handleDuplicateKeyError = (err) => {
 };
 
 const sendErrorDev = (err, res) => {
+    console.log(err.statusCode);
+    
     res.status(err.statusCode).json({
         status: err.status,
         error: err,

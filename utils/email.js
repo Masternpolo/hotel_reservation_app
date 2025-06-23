@@ -37,7 +37,7 @@ module.exports = class Email {
     replacePlaceholders(html) {
         return html
             .replace('{{firstname}}', this.firstname)
-            .replace('{{url}}', html.includes('{{url}}') ? this.url : '');
+            .replace(/{{url}}/g, html.includes('{{url}}') ? this.url : '');
     }
 
     async send(template, subject) {
