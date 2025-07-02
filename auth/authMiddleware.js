@@ -1,14 +1,16 @@
 const jwt = require('jsonwebtoken');
-const crypto = require('crypto')
+const crypto = require('crypto');
+const AppError = require('../utils/appError')
 
-const accessToken = (payload) => {
+exports.accessToken = (payload) => {
    return jwt.sign(
     payload, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: process.env.EXPIRES_IN
+      expiresIn: `${process.env.EXPIRES_IN}d`,
     })
+    
 }
 
-const protect = async(req, res, next) => {
+exports.protect = async(req, res, next) => {
   let token = req.headers.authorization;
 
   if (token && token.startsWith('Bearer ')) {
@@ -21,19 +23,19 @@ const protect = async(req, res, next) => {
       next(err);
     }
   } else {
- 
+    return next(new AppError('You are not logged in. Please provide a token.', 401));
   }
 };
 
-const isAdmin = (req, res, next) => {
+exports.isAdmin = (req, res, next) => {
   if (req.user && req.user.role === 'admin') {
     next();
   } else {
-   return next(new Error('You do not have permission to perform this action', 403));
+   return next(new AppError('You do not have permission to perform this action', 403));
   }
 };
 
-const restrictTo = (...roles) => {
+exports.restrictTo = (...roles) => {
   return (req, res, next) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return next(new AppError('You do not have permission to perform this action', 403));
@@ -42,4 +44,3 @@ const restrictTo = (...roles) => {
   };
 }
 
-module.exports = { protect, isAdmin, accessToken };

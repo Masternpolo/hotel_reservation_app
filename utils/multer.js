@@ -39,10 +39,11 @@ exports.uploadHotelPhotos = upload.fields([
   { name: 'registrationDoc', maxCount: 1 },
   { name: 'hotelPhotos', maxCount: 6 }
 ]);
+exports.uploadRoomPhotos = upload.array('roomPhotos', 2);
 
 
 exports.resizeUserPhoto = async (req, res, next) => {
-  
+
   if (!req.file) return next();
 
   req.file.filename = `user-${req.user.id}-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpeg`
@@ -56,14 +57,14 @@ exports.resizeUserPhoto = async (req, res, next) => {
 
 exports.resizeHotelPhotos = async (req, res, next) => {
   try {
-    
+
     req.body.images = [];
-    
+
     // Resize and save hotel images
     if (req.files && req.files.hotelPhotos) {
       await Promise.all(
         req.files.hotelPhotos.map(async (file, index) => {
-          
+
           const filename = `${req.body.hotelname?.replace(/\s+/g, '-')}-${Date.now()}-${Math.round(Math.random() * 1E9)}-${index + 1}.jpeg`;
 
           await sharp(file.buffer)
@@ -71,7 +72,7 @@ exports.resizeHotelPhotos = async (req, res, next) => {
             .toFormat('jpeg')
             .jpeg({ quality: 90 })
             .toFile(`public/img/hotels/${filename}`);
-          
+
           req.body.images.push(filename);
         })
       );
@@ -84,17 +85,43 @@ exports.resizeHotelPhotos = async (req, res, next) => {
       const filename = `${req.body.hotelname?.replace(/\s+/g, '-')}-${Date.now()}-registrationDoc.${ext}`;
       const filePath = `public/uploads/registration_files/${filename}`;
 
-      await fs.writeFile(filePath, docFile.buffer); 
+      await fs.writeFile(filePath, docFile.buffer);
 
       req.body.registrationDocFilename = filename;
       // console.log(req.body);
 
-      
+
     }
 
     next();
   } catch (err) {
     console.error('Error in resizeHotelPhotos middleware:', err);
     next(new AppError('File processing failed', 500));
+  }
+}
+exports.resizeRoomPhotos = async (req, res, next) => {
+  try {
+    req.body.images = [];
+
+    // Resize and save room images
+    if (req.files) {
+      await Promise.all(
+        req.files.map(async (file, index) => {
+
+          const filename = `${req.body.name?.replace(/\s+/g, '-')}-${Date.now()}-${Math.round(Math.random() * 1E9)}-${index + 1}.jpeg`;
+          console.log(filename);
+          await sharp(file.buffer)
+            .resize(800, 400)
+            .toFormat('jpeg')
+            .jpeg({ quality: 90 })
+            .toFile(`public/img/rooms/${filename}`);
+
+          req.body.images.push(filename);
+        })
+      );
+    }
+    next();
+  } catch (err) {
+    next(err);
   }
 }

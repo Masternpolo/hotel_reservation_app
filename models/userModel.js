@@ -35,7 +35,7 @@ exports.findUserByResetToken = async (resetToken) => {
 
 exports.findUserByEmail = async (email) => {
     try {
-        const query = 'SELECT * FROM users WHERE email = $1';
+        const query = 'SELECT firstname, lastname, email, username FROM users WHERE email = $1';
         const values = [email];
         const result = await pool.query(query, values);
         if (result.rows.length > 0) {

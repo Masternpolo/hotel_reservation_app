@@ -1,0 +1,104 @@
+const pool = require('../database/db');
+const bcrypt = require('bcryptjs');
+
+
+// Register room
+exports.register = async (name, type, description,
+    price, hotelId) => {
+    try {
+        const query = `
+            INSERT INTO rooms 
+                (name, type, description, price, hotel_id)
+            VALUES 
+                ($1, $2, $3, $4, $5)
+            RETURNING *`;
+        const values = [name, type, description,
+            price, hotelId];
+        const result = await pool.query(query, values);
+        return result.rows[0];
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Get all rooms
+exports.getAllrooms = async () => {
+    try {
+        const query = `
+  SELECT 
+    ro.id,
+    ro.Id,
+    ro.name,
+    ro.type,
+    description,
+    price, 
+    hotelId
+    ro.created_at,
+    COALESCE(
+      ARRAY(
+        SELECT img.image_url
+        FROM room_images img
+        WHERE img.room_id = ro.id
+      ),
+      ARRAY[]::TEXT[]
+    ) AS images
+  FROM rooms ro
+`;
+
+        const result = await pool.query(query);
+        return result.rows;
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Get room by ID
+exports.getRoomById = async (id) => {
+    try {
+        const query = `
+      SELECT * FROM rooms
+      WHERE id = $1
+    `;
+        const result = await pool.query(query, [id]);
+        return result.rows[0];
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Delete room
+exports.deleteroom = async (id) => {
+    try {
+        const query = 'DELETE FROM rooms WHERE id = $1';
+        await pool.query(query, [id]);
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Upload room images
+exports.uploadRoomImages = async (roomId, imageUrl) => {
+    try {
+        const query = 'INSERT INTO room_images (room_id, image_url) VALUES ($1, $2)';
+        await pool.query(query, [roomId, imageUrl]);
+    } catch (err) {
+        throw err;
+    }
+};
+
+// Update room
+exports.updateRoom = async (id, name, type, description,
+    price, hotelId) => {
+    try {
+        const query = `
+            UPDATE rooms 
+            SET name = $1, type = $2, description = $3, price = $4 
+            WHERE id = $5 AND hotel_id = $6 RETURNING *
+        `;
+        const values = [name, type, description, price, hotelId, id];
+        const result = await pool.query(query, values);
+        return result.rows[0];
+    } catch (err) {
+        throw err;
+    }
+};

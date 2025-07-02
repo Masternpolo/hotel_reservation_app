@@ -4,6 +4,8 @@ const AppError = require('../utils/appError');
 const bcrypt = require('bcryptjs');
 const { accessToken } = require('../auth/authMiddleware');
 const Email = require('../utils/email');
+const jwt = require('jsonwebtoken');
+
 
 
 
@@ -62,13 +64,13 @@ exports.login = async (req, res, next) => {
             role: loginUser.role,
             created_at: loginUser.created_at
         }
-        const token = accessToken(user)
+        const token = accessToken({id: user.id, role: user.role, email: user.email, username: user.username});
 
         res.status(200).json({
             status: 'success',
             token,
             data: {
-                user: loginUser,
+                user,
             },
         });
     } catch (err) {

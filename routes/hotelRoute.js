@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const hotelController = require('../controllers/hotelsController');
 const { body } = require('express-validator');
-const { protect, isAdmin } = require('../auth/authMiddleware');
+const auth = require('../auth/authMiddleware');
 const multerController = require('../utils/multer');
 
 
@@ -23,13 +23,13 @@ router.post('/registerHotel',
 
 router.route('/')
   .get(hotelController.getAllHotels)
-  .post(protect, isAdmin, hotelController.registerHotel);
+  .post(auth.protect, auth.isAdmin, hotelController.registerHotel);
 
 router
   .route('/:id')
-  .get(protect, isAdmin, hotelController.getHotelById)
-  .patch(protect, isAdmin, hotelController.updateHotel)
-  .delete(protect, isAdmin, hotelController.deleteHotel);
+  .get(auth.protect, auth.isAdmin, hotelController.getHotelById)
+  .patch(auth.protect, auth.isAdmin, hotelController.updateHotel)
+  .delete(auth.protect, auth.isAdmin, hotelController.deleteHotel);
 
 
 

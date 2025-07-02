@@ -3,7 +3,7 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const userController = require('../controllers/userController')
 const { body } = require('express-validator');
-const { protect, isAdmin } = require('../auth/authMiddleware');
+const auth = require('../auth/authMiddleware');
 
 
 const validateUserRegistration = () => [
@@ -27,23 +27,23 @@ router.post('/signup', validateUserRegistration(), authController.signUp);
 router.post('/forgotpassword', validateUserLogin(), authController.forgotPassword);
 router.post('/resetpassword/:token', validateUserRegistration(), authController.resetPassword);
 
-router.use(protect)
+router.use(auth.protect)
 
-router.patch('/updateMyPassword', protect, authController.updateMyPassword);
-router.patch('/updateMe', protect, userController.updateMe);
+router.patch('/updateMyPassword', auth.protect, authController.updateMyPassword);
+router.patch('/updateMe', auth.protect, userController.updateMe);
 
 
-router.use(isAdmin);
+router.use(auth.isAdmin);
 
 router.route('/')
-  .get(protect, userController.getAllUsers)
-  .post(protect, userController.createUser);
+  .get(auth.protect, userController.getAllUsers)
+  .post(auth.protect, userController.createUser);
 
 router
   .route('/:id')
-  .get(protect, isAdmin, userController.getUserById)
-  .patch(protect, isAdmin, userController.updateMe)
-  .delete(protect, isAdmin, userController.deleteUser);
+  .get(auth.protect, auth.isAdmin, userController.getUserById)
+  .patch(auth.protect, auth.isAdmin, userController.updateMe)
+  .delete(auth.protect, auth.isAdmin, userController.deleteUser);
 
 
 module.exports = router;

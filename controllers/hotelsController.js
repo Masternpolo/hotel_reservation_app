@@ -31,17 +31,16 @@ exports.registerHotel = async (req, res, next) => {
     address = address?.trim().toLowerCase();
     description = description?.trim().toLowerCase();
 
-    const newUser = await hotelModel.register(
+    const newHotel = await hotelModel.register(
       owner, email, phone, country, nic,
       username, password, hotelname,
       description, regno, address, docurl
     );
 
-    const hotelId = newUser.id;
+    const hotelId = newHotel.id;
     const imageFiles = req.body.images;
     
     for (let file of imageFiles) {
-        console.log(file);
       const imageUrl = `public/img/hotels/${file}`;
       await hotelModel.uploadHotelImages(hotelId, imageUrl);
     }
@@ -49,7 +48,7 @@ exports.registerHotel = async (req, res, next) => {
     res.status(201).json({
       status: 'success',
       data: {
-        user: newUser,
+        hotel: newHotel,
       },
     });
   } catch (err) {
