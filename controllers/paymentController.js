@@ -1,9 +1,10 @@
-const https = require('https');
-const roomModel = require('../models/roomModel');
-const userModel = require('../models/userModel');
-const AppError = require('../utils/appError');
+import https from 'https';
+import * as roomModel from '../models/roomModel.js';
+import * as userModel from '../models/userModel.js';
+import AppError from '../utils/appError.js';
 
-exports.makePayment = async (req, res, next) => {
+
+export const makePayment = async (req, res, next) => {
     console.log('inside makePayment');
     console.log(req.user);
     
@@ -29,7 +30,7 @@ exports.makePayment = async (req, res, next) => {
         if (!room) return next(new AppError('room not found', 404));
 
         const customerName = `${customer.firstname} ${customer.lastname}`;
-        const callback_url = `http://localhost:3000/api/v1/payment/checkTransactionStatus`;
+        const callback_url = `https://hotel-app-frontend-pxid.onrender.com/api/v1/payment/checkTransactionStatus`;
 
         const params = JSON.stringify({
             email,
@@ -82,7 +83,7 @@ exports.makePayment = async (req, res, next) => {
     }
 };
 
-exports.checkTransactionStatus = async (req, res, next) => {
+export const checkTransactionStatus = async (req, res, next) => {
     try {
         const reference = req.query.reference;
         const options = {

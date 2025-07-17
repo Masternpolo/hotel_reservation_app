@@ -1,8 +1,9 @@
-const express = require('express');
+import express from 'express';
+import * as roomController from '../controllers/roomsController.js';
+import * as auth from '../auth/authMiddleware.js';
+import * as multerController from '../utils/multer.js';
+
 const router = express.Router();
-const roomController = require('../controllers/roomsController');
-const auth = require('../auth/authMiddleware');
-const multerController = require('../utils/multer');
 
 router.route('/')
   .get(roomController.getAllRooms)
@@ -12,12 +13,15 @@ router.route('/')
     roomController.registerRoom
 );
 
-router
-  .route('/:id')
-  .get(auth.protect, auth.isAdmin, roomController.getRoomById)
-  .patch(auth.protect, auth.isAdmin, roomController.updateRoom)
-  .delete(auth.protect, auth.isAdmin, roomController.deleteRoom);
+router.route('/:id')
+  .get(auth.protect, roomController.getRoomById)
+  .patch(
+    auth.protect, 
+    multerController.uploadRoomPhotos,
+    multerController.resizeRoomPhotos,
+    roomController.updateRoom)
+  .delete(auth.protect, roomController.deleteRoom);
 
 
 
-module.exports = router;
+export default router;

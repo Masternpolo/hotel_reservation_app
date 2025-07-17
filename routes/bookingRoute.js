@@ -1,10 +1,10 @@
-const express = require('express') ;
-const router = express.Router();
-const bookingModel = require('../controllers/authController');
-const bookingController = require('../controllers/userController')
-const auth = require('../auth/authMiddleware');
+import express from 'express';
+import * as bookingController from '../controllers/bookingsController.js';
+import * as auth from '../auth/authMiddleware.js';
 
-router.post('/pastBookings', auth.protect, isAdmin, bookingController.getAllPastBookings)
+const router = express.Router();
+
+router.post('/pastBookings', auth.protect, isAdmin, bookingController.getAllPastBookings);
 
 router.route('/')
   .get(bookingController.getAllBookings)
@@ -16,6 +16,4 @@ router
   .patch(auth.protect, bookingController.updateBooking)
   .delete(auth.protect, bookingController.deleteBooking);
 
-
-
-module.exports = router;
+export default router;

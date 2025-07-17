@@ -1,8 +1,8 @@
-const multer = require('multer');
-const sharp = require('sharp');
-const AppError = require('../utils/appError');
-const fs = require('fs/promises');
-
+import multer from 'multer';
+import sharp from 'sharp';
+import AppError from '../utils/appError.js';
+import fs from 'fs/promises';
+import { log } from 'console';
 
 // const storage = multer.diskStorage({
 //   destination: function (req, file, cb) {
@@ -13,8 +13,7 @@ const fs = require('fs/promises');
 //     const imgExt = file.mimetype.split('/')[1]
 //     cb(null, `user-${req.user.id}-${uniqueSuffix}.${imgExt}`)
 //   }
-// })
-
+// });
 
 const storage = multer.memoryStorage();
 
@@ -33,42 +32,43 @@ const upload = multer({
   limits: { fileSize: 1024 * 1024 * 3 } // 3MB
 });
 
-exports.uploadUserPhoto = upload.single('photo');
+export const uploadUserPhoto = upload.single('photo');
 
-exports.uploadHotelPhotos = upload.fields([
+export const uploadHotelPhotos = upload.fields([
   { name: 'registrationDoc', maxCount: 1 },
   { name: 'hotelPhotos', maxCount: 6 }
 ]);
-exports.uploadRoomPhotos = upload.array('roomPhotos', 2);
 
+export const uploadRoomPhotos = upload.array('roomPhotos', 2);
 
-exports.resizeUserPhoto = async (req, res, next) => {
-
+export const resizeUserPhoto = async (req, res, next) => {
   if (!req.file) return next();
 
-  req.file.filename = `user-${req.user.id}-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpeg`
+  req.file.filename = `user-${req.user.id}-${Date.now()}-${Math.round(Math.random() * 1E9)}.jpeg`;
+
   await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
     .jpeg({ quality: 90 })
     .toFile(`public/img/users/${req.file.filename}`);
-  next()
-}
 
-exports.resizeHotelPhotos = async (req, res, next) => {
+  next();
+};
+
+export const resizeHotelPhotos = async (req, res, next) => {
   try {
-
     req.body.images = [];
+        console.log(req.body.hotelname);
 
-    // Resize and save hotel images
     if (req.files && req.files.hotelPhotos) {
       await Promise.all(
+        
         req.files.hotelPhotos.map(async (file, index) => {
 
           const filename = `${req.body.hotelname?.replace(/\s+/g, '-')}-${Date.now()}-${Math.round(Math.random() * 1E9)}-${index + 1}.jpeg`;
 
           await sharp(file.buffer)
-            .resize(800, 600)
+            .resize(800, 400)
             .toFormat('jpeg')
             .jpeg({ quality: 90 })
             .toFile(`public/img/hotels/${filename}`);
@@ -78,7 +78,6 @@ exports.resizeHotelPhotos = async (req, res, next) => {
       );
     }
 
-    // Save registrationDoc if it exists and is a PDF
     const docFile = req.files?.registrationDoc?.[0];
     if (docFile && docFile.mimetype === 'application/pdf') {
       const ext = docFile.mimetype.split('/')[1] || 'pdf';
@@ -88,9 +87,6 @@ exports.resizeHotelPhotos = async (req, res, next) => {
       await fs.writeFile(filePath, docFile.buffer);
 
       req.body.registrationDocFilename = filename;
-      // console.log(req.body);
-
-
     }
 
     next();
@@ -98,18 +94,17 @@ exports.resizeHotelPhotos = async (req, res, next) => {
     console.error('Error in resizeHotelPhotos middleware:', err);
     next(new AppError('File processing failed', 500));
   }
-}
-exports.resizeRoomPhotos = async (req, res, next) => {
+};
+
+export const resizeRoomPhotos = async (req, res, next) => {
   try {
     req.body.images = [];
 
-    // Resize and save room images
     if (req.files) {
       await Promise.all(
         req.files.map(async (file, index) => {
-
           const filename = `${req.body.name?.replace(/\s+/g, '-')}-${Date.now()}-${Math.round(Math.random() * 1E9)}-${index + 1}.jpeg`;
-          console.log(filename);
+
           await sharp(file.buffer)
             .resize(800, 400)
             .toFormat('jpeg')
@@ -124,4 +119,4 @@ exports.resizeRoomPhotos = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
-}
+};

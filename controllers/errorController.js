@@ -1,5 +1,4 @@
-const AppError = require('../utils/appError');
-
+import AppError from '../utils/appError.js';
 //  Duplicate key error handler
 const handleDuplicateKeyError = (err) => {
     const message = `${err.detail}`;
@@ -36,19 +35,21 @@ const sendErrorProd = (err, res) => {
     }
 }
 
-module.exports = (err, req, res, next) => {
+const globalErrorHandler = (err, req, res, next) => {
 
     err.statusCode = err.statusCode || 500;
-    err.status = err.status || 'error'
+    err.status = err.status || 'error';
 
     if (process.env.NODE_ENV === 'development') {
-        sendErrorDev(err, res)
+        sendErrorDev(err, res);
     } else if (process.env.NODE_ENV === 'production') {
-        let error = err
+        let error = err;
         if (error.code === '23505') error = handleDuplicateKeyError(error);
-        
+
         sendErrorProd(error, res);
     }
-}
+};
+
+export default globalErrorHandler;
 
 

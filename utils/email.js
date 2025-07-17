@@ -1,38 +1,39 @@
-const fs = require('fs');
-const path = require('path');
-const nodemailer = require('nodemailer');
+import fs from 'fs';
+import path from 'path';
+import nodemailer from 'nodemailer';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const templates = {
     welcome: fs.readFileSync(path.resolve(__dirname, '../public/welcome.html'), 'utf-8'),
     reset: fs.readFileSync(path.resolve(__dirname, '../public/reset.html'), 'utf-8'),
 };
 
-
-
-
-module.exports = class Email {
+export default class Email {
     constructor(user, url) {
         this.to = user.email;
         this.firstname = user.firstname;
         this.url = url;
-        this.from = `hotelreservation<${process.env.EMAIL_FROM}>`
+        this.from = `hotelreservation<${process.env.EMAIL_FROM}>`;
     }
-    
+
     newTransport() {
         if (process.env.NODE_ENV === 'production') {
             // sendgrid
-            return 1
+            return 1;
         }
         return nodemailer.createTransport({
             host: process.env.DEV_EMAIL_HOST,
-            PORT: process.env.DEV_EMAIL_PORT,
+            port: process.env.DEV_EMAIL_PORT,
             auth: {
                 user: process.env.DEV_EMAIL_USERNAME,
                 pass: process.env.DEV_EMAIL_PASSWORD
             }
-        })
+        });
     }
-
 
     replacePlaceholders(html) {
         return html
@@ -41,26 +42,17 @@ module.exports = class Email {
     }
 
     async send(template, subject) {
-        // render html template
         let html = templates[template];
-
-        // if (!html) {
-        //     throw new Error(`Template "${template}" not found in cache.`);
-        // }
-
-        // Replace placeholders with actual user data
         html = this.replacePlaceholders(html);
-        // define email options
+
         const mailOptions = {
             from: this.from,
             to: this.to,
             subject,
             html
-        }
+        };
 
-        // create transport and send mail
-        
-        await this.newTransport().sendMail(mailOptions)
+        await this.newTransport().sendMail(mailOptions);
     }
 
     async sendResetMail() {

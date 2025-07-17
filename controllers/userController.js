@@ -1,7 +1,7 @@
-const userModel = require('../models/userModel');
-const AppError = require('../utils/appError');
+import * as userModel from '../models/userModel.js';
+import AppError from '../utils/appError.js';
 
-exports.getAllUsers = async (req, res, next) => {
+export const getAllUsers = async (req, res, next) => {
     try {
         const users = await userModel.getAllUsers();
         res.status(200).json({
@@ -15,7 +15,7 @@ exports.getAllUsers = async (req, res, next) => {
     }
 };
 
-exports.createUser = async (req, res, next) => {
+export const createUser = async (req, res, next) => {
     try {
         const errors = validationResult(req)
         if (!errors.isEmpty()) {
@@ -42,7 +42,7 @@ exports.createUser = async (req, res, next) => {
     }
 }
 
-exports.getUserById = async (req, res, next) => {
+export const getUserById = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const user = await userModel.getUserById(userId);
@@ -60,7 +60,7 @@ exports.getUserById = async (req, res, next) => {
     }
 };
 
-exports.deleteUser = async (req, res, next) => {
+export const deleteUser = async (req, res, next) => {
     try {
         const userId = req.params.id;
         await userModel.deleteUser(userId);
@@ -73,7 +73,7 @@ exports.deleteUser = async (req, res, next) => {
     }
 };
 
-exports.updateMe = async (req, res, next) => {
+export const updateMe = async (req, res, next) => {
     try {
         const userId = req.user
         const { firstname, lastname, email, phone, username } = req.body;

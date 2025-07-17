@@ -1,16 +1,16 @@
-const { validationResult } = require('express-validator');
-const userModel = require('../models/userModel');
-const AppError = require('../utils/appError');
-const bcrypt = require('bcryptjs');
-const { accessToken } = require('../auth/authMiddleware');
-const Email = require('../utils/email');
-const jwt = require('jsonwebtoken');
+import { validationResult } from 'express-validator';
+import * as userModel from '../models/userModel.js';
+import AppError from '../utils/appError.js';
+import bcrypt from 'bcryptjs';
+import { accessToken } from '../auth/authMiddleware.js';
+import Email from '../utils/email.js';
+import jwt from 'jsonwebtoken';
 
 
 
 
 
-exports.signUp = async (req, res, next) => {
+export const signUp = async (req, res, next) => {
     try {
         const errors = validationResult(req)
         if (!errors.isEmpty()) {
@@ -35,9 +35,9 @@ exports.signUp = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};
 
-exports.login = async (req, res, next) => {
+export const login = async (req, res, next) => {
     try {
         const errors = validationResult(req)
         if (!errors.isEmpty()) {
@@ -46,6 +46,8 @@ exports.login = async (req, res, next) => {
 
         let { username, password } = req.body;
         username = username.trim().toLowerCase();
+        console.log(typeof password);
+        
 
         const loginUser = await userModel.findUserByUsername(username);
 
@@ -63,8 +65,8 @@ exports.login = async (req, res, next) => {
             username: loginUser.username,
             role: loginUser.role,
             created_at: loginUser.created_at
-        }
-        const token = accessToken({id: user.id, role: user.role, email: user.email, username: user.username});
+        };
+        const token = accessToken({ id: user.id, role: user.role, email: user.email, username: user.username });
 
         res.status(200).json({
             status: 'success',
@@ -74,36 +76,32 @@ exports.login = async (req, res, next) => {
             },
         });
     } catch (err) {
-        next(err)
+        next(err);
     }
-}
+};
 
-exports.forgotPassword = async (req, res, next) => {
+export const forgotPassword = async (req, res, next) => {
     try {
-        // check if email exists
         const email = req.body.email;
-        
+
         const user = await userModel.findUserByEmail(email);
         if (!user) {
             return next(new AppError('There is no user with that email address', 404));
         }
-        // generate reset token
+
         const resetToken = userModel.createPasswordresetToken();
-        
-        // save token to db
+
         await userModel.saveResetToken(user.id, resetToken);
         const resetUrl = `${req.protocol}://${req.get('host')}/api/v1/users/resetpassword/${resetToken}`;
 
-        // send email
         try {
-           
             await new Email(user, resetUrl).sendResetMail();
-
         } catch (err) {
             await userModel.deleteResetToken(user.id);
-            console.log(err); 
+            console.log(err);
             return next(new AppError('There was an error sending the email. Try again later', 500));
         }
+
         res.status(200).json({
             status: 'success',
             message: 'Token sent to email',
@@ -112,9 +110,9 @@ exports.forgotPassword = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};
 
-exports.resetPassword = async (req, res, next) => {
+export const resetPassword = async (req, res, next) => {
     try {
         const newPassword = req.body.password;
         const resetToken = req.params.token;
@@ -123,10 +121,10 @@ exports.resetPassword = async (req, res, next) => {
         if (!user) {
             return next(new AppError('Token is invalid or has expired', 400));
         }
-        
-        await userModel.updateUserPassword(newPassword, user.id)
+
+        await userModel.updateUserPassword(newPassword, user.id);
         await userModel.deleteResetToken(user.id);
-        const token = accessToken(user)
+        const token = accessToken(user);
 
         res.status(200).json({
             status: 'success',
@@ -139,9 +137,9 @@ exports.resetPassword = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};
 
-exports.updateMyPassword = async (req, res, next) => {
+export const updateMyPassword = async (req, res, next) => {
     try {
         const userId = req.user.id;
         const { currentPassword, newPassword } = req.body;
@@ -157,7 +155,7 @@ exports.updateMyPassword = async (req, res, next) => {
         }
 
         await userModel.updateUserPassword(newPassword, userId);
-        const token = accessToken(user)
+        const token = accessToken(user);
         res.status(200).json({
             status: 'success',
             token
@@ -166,4 +164,4 @@ exports.updateMyPassword = async (req, res, next) => {
     } catch (err) {
         next(err);
     }
-}
+};

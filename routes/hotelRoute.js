@@ -1,11 +1,12 @@
-const express = require('express');
+import express from 'express';
+import * as hotelController from '../controllers/hotelsController.js';
+import { body } from 'express-validator';
+import * as auth from '../auth/authMiddleware.js';
+import * as multerController from '../utils/multer.js';
+
 const router = express.Router();
-const hotelController = require('../controllers/hotelsController');
-const { body } = require('express-validator');
-const auth = require('../auth/authMiddleware');
-const multerController = require('../utils/multer');
 
-
+// Optional: keep validation block for future use
 // const validateUserRegistration = () => [
 //   body('username')
 //     .notEmpty().withMessage('Username is required')
@@ -20,17 +21,18 @@ router.post('/registerHotel',
   hotelController.registerHotel
 );
 
-
 router.route('/')
   .get(hotelController.getAllHotels)
   .post(auth.protect, auth.isAdmin, hotelController.registerHotel);
 
-router
-  .route('/:id')
-  .get(auth.protect, auth.isAdmin, hotelController.getHotelById)
-  .patch(auth.protect, auth.isAdmin, hotelController.updateHotel)
-  .delete(auth.protect, auth.isAdmin, hotelController.deleteHotel);
+router.route('/:id')
+  .get(auth.protect, hotelController.getHotelById)
+  .patch(
+    auth.protect, 
+    multerController.uploadHotelPhotos,
+    multerController.resizeHotelPhotos, 
+    hotelController.updateHotel
+  )
+  .delete(auth.protect, hotelController.deleteHotel);
 
-
-
-module.exports = router;
+export default router;

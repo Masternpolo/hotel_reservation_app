@@ -1,9 +1,9 @@
-const pool = require('../database/db');
-const bcrypt = require('bcryptjs');
-const crypto = require('crypto');
+import pool from '../database/db.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 // search for user by email in the database
-exports.findUserByUsername = async (username) => {
+export const findUserByUsername = async (username) => {
     try {
         const query = 'SELECT * FROM users WHERE username = $1';
         const value = [username];
@@ -17,14 +17,14 @@ exports.findUserByUsername = async (username) => {
     }
 };
 
-exports.findUserByResetToken = async (resetToken) => {
+export const findUserByResetToken = async (resetToken) => {
     try {
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
         const value = [hashedToken];
         const query = 'SELECT * FROM password_resets WHERE token = $1 AND expires_at > NOW()';
         const result = await pool.query(query, value);
         if (result.rows.length > 0) {
-            const user = await exports.getUserById(result.rows[0].user_id);
+            const user = await getUserById(result.rows[0].user_id);
             return user;
         }
         return null;
@@ -33,7 +33,7 @@ exports.findUserByResetToken = async (resetToken) => {
     }
 };
 
-exports.findUserByEmail = async (email) => {
+export const findUserByEmail = async (email) => {
     try {
         const query = 'SELECT firstname, lastname, email, username FROM users WHERE email = $1';
         const values = [email];
@@ -48,7 +48,7 @@ exports.findUserByEmail = async (email) => {
 };
 
 // register a new user in the database
-exports.register = async (firstname, lastname, email, phone, username, password) => {
+export const register = async (firstname, lastname, email, phone, username, password) => {
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const query = 'INSERT INTO users (firstname, lastname, email, phone, username, password) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, firstname, lastname, email, username, role, created_at';
@@ -62,7 +62,7 @@ exports.register = async (firstname, lastname, email, phone, username, password)
 
 
 // get all users from the database
-exports.getAllUsers = async () => {
+export const getAllUsers = async () => {
     try {
         const query = 'SELECT id, username, email, created_at FROM users';
         const result = await pool.query(query);
@@ -73,7 +73,7 @@ exports.getAllUsers = async () => {
 }
 
 // get user from the database using id
-exports.getUserById = async (id) => {
+export const getUserById = async (id) => {
     try {
         const query = 'SELECT id, email, password, role FROM users WHERE id = $1 ';
         const values = [id];
@@ -85,7 +85,7 @@ exports.getUserById = async (id) => {
 };
 
 // delete user form the database using id
-exports.deleteUser = async (id) => {
+export const deleteUser = async (id) => {
     try {
         const query = 'DELETE FROM users WHERE id = $1';
         const values = [id];
@@ -96,7 +96,7 @@ exports.deleteUser = async (id) => {
 }
 
 // update user in the database using id 
-exports.updateUser = async (id, firstname, lastname, email, phone, username) => {
+export const updateUser = async (id, firstname, lastname, email, phone, username) => {
     try {
         const query = 'UPDATE users SET firstname = $1, lastname = $2, email = $3, phone = $4, username = $5 WHERE id = $6';
         const values = [firstname, lastname, email, phone, username, id];
@@ -108,7 +108,7 @@ exports.updateUser = async (id, firstname, lastname, email, phone, username) => 
 };
 
 // update user password in the database using id 
-exports.updateUserPassword = async (password, userId) => {
+export const updateUserPassword = async (password, userId) => {
     try {
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -120,12 +120,12 @@ exports.updateUserPassword = async (password, userId) => {
     }
 };
 
-exports.createPasswordresetToken = () => {
+export const createPasswordresetToken = () => {
     const resetToken = crypto.randomBytes(32).toString('hex');
     return resetToken;
 }
 
-exports.saveResetToken = async (userId, resetToken) => {
+export const saveResetToken = async (userId, resetToken) => {
     try {
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     const passwordResetExpires = new Date(Date.now() + 10 * 60 * 1000);
@@ -138,7 +138,7 @@ exports.saveResetToken = async (userId, resetToken) => {
     }
 }
 
-exports.deleteResetToken = async (userId) => {
+export const deleteResetToken = async (userId) => {
     const query = 'DELETE FROM password_resets WHERE user_id = $1';
     const values = [userId];
     await pool.query(query, values);

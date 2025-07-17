@@ -1,8 +1,9 @@
-const hotelModel = require('../models/hotelModel');
-const AppError = require('../utils/appError');
-const Email = require('../utils/email');
+import * as hotelModel from '../models/hotelModel.js';
+import AppError from '../utils/appError.js';
+import Email from '../utils/email.js';
 
-exports.registerBooking = async (req, res, next) => {
+
+export const registerBooking = async (req, res, next) => {
 //   try {
 //     let {
 //       duration, email, customerName, initialPayment, totalPayment,
@@ -29,7 +30,7 @@ exports.registerBooking = async (req, res, next) => {
 //   }
 };
 
-exports.getAllBookings = async (req, res, next) => {
+export const getAllBookings = async (req, res, next) => {
     try {
         const bookings = await bookingModel.getAllBookings();
         res.status(200).json({
@@ -44,7 +45,7 @@ exports.getAllBookings = async (req, res, next) => {
     }
 };
 
-exports.getHotelById = async (req, res, next) => {
+export const getHotelById = async (req, res, next) => {
     try {
         const bookingId = req.params.id;
         const booking = await hotelModel.getHotelById(bookingId);
@@ -62,7 +63,7 @@ exports.getHotelById = async (req, res, next) => {
     }
 }
 
-exports.deleteBooking = async (req, res, next) => {
+export const deleteBooking = async (req, res, next) => {
     try {
         const bookingId = req.params.id;
         await bookingModel.deleteBooking(bookingId);
@@ -75,7 +76,7 @@ exports.deleteBooking = async (req, res, next) => {
     }
 }
 
-exports.updateBooking = async (req, res, next) => {
+export const updateBooking = async (req, res, next) => {
     try {
     //     const bookingId = req.params.id;
     //     const { owner, email, phone, country, nic, username, hotelname, regno, address } = req.body;

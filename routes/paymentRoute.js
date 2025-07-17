@@ -1,12 +1,11 @@
-const express = require('express');
-const router = express.Router();
-const paymentController = require('../controllers/paymentController')
-const auth = require('../auth/authMiddleware');
+import express from 'express';
+import * as paymentController from '../controllers/paymentController.js';
+import * as auth from '../auth/authMiddleware.js';
 
-router
-    .route('/')
+const router = express.Router();
+
+router.route('/')
     .get(paymentController.checkTransactionStatus)
     .post(auth.protect, paymentController.makePayment);
 
-
-module.exports = router;
+export default router;

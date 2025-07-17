@@ -1,8 +1,9 @@
-const pool = require('../database/db');
-const bcrypt = require('bcryptjs');
+import pool from '../database/db.js';
+import bcrypt from 'bcryptjs';
+
 
 // Find hotel by owner's name
-exports.findUserByOwner = async (name) => {
+export const findUserByOwner = async (name) => {
     try {
         const query = 'SELECT * FROM hotels WHERE owner = $1';
         const value = [name];
@@ -14,7 +15,7 @@ exports.findUserByOwner = async (name) => {
 };
 
 // Find hotel by email
-exports.findHotelByEmail = async (email) => {
+export const findHotelByEmail = async (email) => {
     try {
         const query = 'SELECT * FROM hotels WHERE email = $1';
         const values = [email];
@@ -26,7 +27,7 @@ exports.findHotelByEmail = async (email) => {
 };
 
 // Register hotel
-exports.register = async (owner, email, phone, country, nic, username, password, hotelname, description, regno, address, docurl) => {
+export const register = async (owner, email, phone, country, nic, username, password, hotelname, description, regno, address, docurl) => {
     try {
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -47,7 +48,7 @@ exports.register = async (owner, email, phone, country, nic, username, password,
 };
 
 // Get all hotels
-exports.getAllHotels = async () => {
+export const getAllHotels = async () => {
     try {
         const query = `
   SELECT 
@@ -76,26 +77,25 @@ exports.getAllHotels = async () => {
 };
 
 // Get hotel by ID
-exports.getHotelById = async (id) => {
+export const getHotelById = async (id) => {
     try {
         const query = `
-      SELECT 
-        ho.id,
-        ho.full_name,
-        ho.email,
-        ho.phone,
-        ho.registration_file_url,
-        ho.created_at,
-        COALESCE(
-          ARRAY(
-            SELECT img.image_url
-            FROM hotel_owner_images img
-            WHERE img.hotel_id = ho.id
-          ),
-          ARRAY[]::TEXT[]
-        ) AS images
-      FROM hotels ho
-      WHERE ho.id = $1`
+ SELECT 
+    ho.id,
+    ho.owner,
+    ho.email,
+    ho.phone,
+    ho.docurl,
+    ho.created_at,
+    COALESCE(
+      ARRAY(
+        SELECT img.image_url
+        FROM hotel_images img
+        WHERE img.hotel_id = ho.id
+      ),
+      ARRAY[]::TEXT[]
+    ) AS images
+  FROM hotels ho  WHERE ho.id = $1`
         const result = await pool.query(query, [id]);
         return result.rows[0];
     } catch (err) {
@@ -104,7 +104,7 @@ exports.getHotelById = async (id) => {
 };
 
 // Delete hotel
-exports.deleteHotel = async (id) => {
+export const deleteHotel = async (id) => {
     try {
         const query = 'DELETE FROM hotels WHERE id = $1';
         await pool.query(query, [id]);
@@ -114,7 +114,7 @@ exports.deleteHotel = async (id) => {
 };
 
 // Upload hotel images
-exports.uploadHotelImages = async (hotelId, imageUrl) => {
+export const uploadHotelImages = async (hotelId, imageUrl) => {
     try {
         const query = 'INSERT INTO hotel_images (hotel_id, image_url) VALUES ($1, $2)';
         await pool.query(query, [hotelId, imageUrl]);
@@ -122,19 +122,28 @@ exports.uploadHotelImages = async (hotelId, imageUrl) => {
         throw err;
     }
 };
+export const deleteHotelImages = async (hotelId) => {
+    try {
+        const query = `DELETE FROM hotel_images WHERE hotel_id = $1`;
+        await pool.query(query, [hotelId]);
+    } catch (err) {
+        throw err;
+    }
+};
 
 // Update hotel
-exports.updateHotel = async (id, owner, hotelname, address, imgurl) => {
+export const updateHotel = async (id, owner, email, phone, hotelname, address) => {
     try {
         const query = `
             UPDATE hotels 
-            SET owner = $1, hotelname = $2, address = $3, imgurl = $4 
-            WHERE id = $5 RETURNING *
+            SET owner = $1, email = $2, phone = $3, hotelname = $4, address = $5
+            WHERE id = $6 RETURNING *
         `;
-        const values = [owner, hotelname, address, imgurl, id];
+        const values = [owner, email, phone, hotelname, address, id];
         const result = await pool.query(query, values);
         return result.rows[0];
     } catch (err) {
         throw err;
     }
 };
+

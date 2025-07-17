@@ -1,10 +1,10 @@
-const express = require('express') ;
-const router = express.Router();
-const authController = require('../controllers/authController');
-const userController = require('../controllers/userController')
-const { body } = require('express-validator');
-const auth = require('../auth/authMiddleware');
+import express from 'express';
+import * as authController from '../controllers/authController.js';
+import * as userController from '../controllers/userController.js';
+import { body } from 'express-validator';
+import * as auth from '../auth/authMiddleware.js';
 
+const router = express.Router();
 
 const validateUserRegistration = () => [
   body('username')
@@ -15,35 +15,28 @@ const validateUserRegistration = () => [
 ];
 
 const validateUserLogin = () => [
-  // body('email').isEmail().withMessage('Invalid email format'),
   body('password').notEmpty().withMessage('Password is required')
 ];
 
-
 router.post('/login', validateUserLogin(), authController.login);
 router.post('/signup', validateUserRegistration(), authController.signUp);
-
-
 router.post('/forgotpassword', validateUserLogin(), authController.forgotPassword);
 router.post('/resetpassword/:token', validateUserRegistration(), authController.resetPassword);
 
-router.use(auth.protect)
+router.use(auth.protect);
 
-router.patch('/updateMyPassword', auth.protect, authController.updateMyPassword);
-router.patch('/updateMe', auth.protect, userController.updateMe);
-
+router.patch('/updateMyPassword', authController.updateMyPassword);
+router.patch('/updateMe', userController.updateMe);
 
 router.use(auth.isAdmin);
 
 router.route('/')
-  .get(auth.protect, userController.getAllUsers)
-  .post(auth.protect, userController.createUser);
+  .get(userController.getAllUsers)
+  .post(userController.createUser);
 
-router
-  .route('/:id')
-  .get(auth.protect, auth.isAdmin, userController.getUserById)
-  .patch(auth.protect, auth.isAdmin, userController.updateMe)
-  .delete(auth.protect, auth.isAdmin, userController.deleteUser);
+router.route('/:id')
+  .get(userController.getUserById)
+  .patch(userController.updateMe)
+  .delete(userController.deleteUser);
 
-
-module.exports = router;
+export default router;

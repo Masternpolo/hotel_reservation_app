@@ -1,8 +1,8 @@
-const pool = require('../database/db');
-const bcrypt = require('bcryptjs');
+import pool from '../database/db.js';
+import bcrypt from 'bcryptjs';
 
 // Find hotel by owner's name
-exports.findUserByOwner = async (name) => {
+export const findUserByOwner = async (name) => {
     try {
         const query = 'SELECT * FROM hotels WHERE owner = $1';
         const value = [name];
@@ -14,7 +14,7 @@ exports.findUserByOwner = async (name) => {
 };
 
 // Find hotel by email
-exports.findHotelByEmail = async (email) => {
+export const findHotelByEmail = async (email) => {
     try {
         const query = 'SELECT * FROM hotels WHERE email = $1';
         const values = [email];
@@ -26,7 +26,7 @@ exports.findHotelByEmail = async (email) => {
 };
 
 // Register hotel
-exports.register = async (duration, checkin, checkout, email, name, initial, total, balance, roomname, roomtpye) => {
+export const register = async (duration, checkin, checkout, email, name, initial, total, balance, roomname, roomtpye) => {
     try {
         const query = `
             INSERT INTO hotels 
@@ -45,7 +45,7 @@ exports.register = async (duration, checkin, checkout, email, name, initial, tot
 };
 
 // Get all hotels
-exports.getAllBookings = async () => {
+export const getAllBookings = async () => {
     try {
         const query = `SELECT * FROM boookings`;
 
@@ -57,7 +57,7 @@ exports.getAllBookings = async () => {
 };
 
 // Get hotel by ID
-exports.getBookingById = async (id) => {
+export const getBookingById = async (id) => {
     try {
         const query = `
       SELECT 
@@ -71,7 +71,7 @@ exports.getBookingById = async (id) => {
 };
 
 // Delete hotel
-exports.deleteBooking = async (id) => {
+export const deleteBooking = async (id) => {
     try {
         const query = 'DELETE FROM booking WHERE id = $1';
         await pool.query(query, [id]);
@@ -81,7 +81,7 @@ exports.deleteBooking = async (id) => {
 };
 
 // Update hotel
-exports.updateBooking = async (id, owner, hotelname, address, imgurl) => {
+export const updateBooking = async (id, owner, hotelname, address, imgurl) => {
     // try {
     //     const query = `
     //         UPDATE hotels 
