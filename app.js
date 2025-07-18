@@ -19,56 +19,56 @@ app.use(cors());
 
 
 app.post('/paystack/webhook', express.json({
-  verify: (req, res, buf) => {
-    req.rawBody = buf;
-  }
-}), async (req, res) => {
-  const secret = process.env.PAYSTACK_SECRET_KEY;
-  const signature = req.headers['x-paystack-signature'] || req.headers['X-Paystack-Signature'];
-
-  const hash = crypto.createHmac('sha512', secret)
-    .update(req.rawBody)
-    .digest('hex');
-
-  if (hash !== signature) {
-    return res.status(401).send('Invalid signature');
-  }
-
-  const event = req.body;
-
-  if (event.event === 'charge.success') {
-    const data = event.data;
-    const customFields = data.metadata?.custom_fields || [];
-
-    const customerEmail   = data.customer.email;
-    const customerName    = customFields[0]?.value || 'Unknown';
-    const initialPayment  = Number(customFields[1]?.value) || 0;
-    const totalPayment    = Number(customFields[2]?.value) || 0;
-    const balance         = Number(customFields[3]?.value) || 0;
-    const duration        = customFields[4]?.value || 'Unknown';
-    const checkin         = customFields[5]?.value || 'Unknown';
-    const checkout        = customFields[6]?.value || 'Unknown';
-    const roomName        = customFields[7]?.value || 'Unknown';
-    const roomPrice       = Number(customFields[8]?.value) || 0;
-    const status          = data.status;
-
-    try {
-      await pool.query(
-        `INSERT INTO bookings 
-         (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, price, status) 
-         VALUES (1$, 2$, 3$, 4$, 5$, 6$, 7$, 8$, 9$, 10$, 11$)`,
-        [customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status]
-      );
-      console.log('Payment saved from webhook');
-      return res.sendStatus(200);
-    } catch (err) {
-      console.error('DB error from webhook:', err);
-      return res.sendStatus(500);
+    verify: (req, res, buf) => {
+        req.rawBody = buf;
     }
-  } else {
-    console.log(`Unhandled webhook event: ${event.event}`);
-    return res.sendStatus(200);
-  }
+}), async (req, res) => {
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    const signature = req.headers['x-paystack-signature'] || req.headers['X-Paystack-Signature'];
+
+    const hash = crypto.createHmac('sha512', secret)
+        .update(req.rawBody)
+        .digest('hex');
+
+    if (hash !== signature) {
+        return res.status(401).send('Invalid signature');
+    }
+
+    const event = req.body;
+
+    if (event.event === 'charge.success') {
+        const data = event.data;
+        const customFields = data.metadata?.custom_fields || [];
+
+        const customerEmail = data.customer.email;
+        const customerName = customFields[0]?.value || 'Unknown';
+        const initialPayment = Number(customFields[1]?.value) || 0;
+        const totalPayment = Number(customFields[2]?.value) || 0;
+        const balance = Number(customFields[3]?.value) || 0;
+        const duration = customFields[4]?.value || 'Unknown';
+        const checkin = customFields[5]?.value || 'Unknown';
+        const checkout = customFields[6]?.value || 'Unknown';
+        const roomName = customFields[7]?.value || 'Unknown';
+        const roomPrice = Number(customFields[8]?.value) || 0;
+        const status = data.status;
+
+        try {
+            const sql = `INSERT INTO bookings 
+         (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, price, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 1$0, 1$1)`;
+            const values = [customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status]
+
+            await pool.query(sql, values);
+            console.log('Payment saved from webhook');
+            return res.sendStatus(200);
+        } catch (err) {
+            console.error('DB error from webhook:', err);
+            return res.sendStatus(500);
+        }
+    } else {
+        console.log(`Unhandled webhook event: ${event.event}`);
+        return res.sendStatus(200);
+    }
 });
 
 
