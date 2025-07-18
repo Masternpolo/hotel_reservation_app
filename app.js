@@ -19,59 +19,72 @@ app.use(cors());
 
 
 app.post('/paystack/webhook', express.json({
-    verify: (req, res, buf) => {
-        req.rawBody = buf;
-    }
+  verify: (req, res, buf) => {
+    req.rawBody = buf;
+  }
 }), async (req, res) => {
-    const secret = process.env.PAYSTACK_SECRET_KEY;
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+  const signature = req.headers['x-paystack-signature'] || req.headers['X-Paystack-Signature'];
 
-    const hash = crypto
-        .createHmac('sha512', secret)
-        .update(req.rawBody)
-        .digest('hex');
+  const hash = crypto.createHmac('sha512', secret)
+    .update(req.rawBody)
+    .digest('hex');
 
-    if (hash !== req.headers['x-paystack-signature']) {
-        return res.status(401).send('Invalid signature');
+  if (hash !== signature) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  const event = req.body;
+
+  if (event.event === 'charge.success') {
+    const data = event.data;
+    const customFields = data.metadata?.custom_fields || [];
+
+    const customerEmail   = data.customer.email;
+    const customerName    = customFields[0]?.value || 'Unknown';
+    const initialPayment  = Number(customFields[1]?.value) || 0;
+    const totalPayment    = Number(customFields[2]?.value) || 0;
+    const balance         = Number(customFields[3]?.value) || 0;
+    const duration        = customFields[4]?.value || 'Unknown';
+    const checkin         = customFields[5]?.value || 'Unknown';
+    const checkout        = customFields[6]?.value || 'Unknown';
+    const roomName        = customFields[7]?.value || 'Unknown';
+    const roomPrice       = Number(customFields[8]?.value) || 0;
+    const status          = data.status;
+
+    try {
+      await db.execute(
+        `INSERT INTO bookings 
+         (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, room_price, status) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status]
+      );
+      console.log('Payment saved from webhook');
+      return res.sendStatus(200);
+    } catch (err) {
+      console.error('DB error from webhook:', err);
+      return res.sendStatus(500);
     }
-
-    const event = req.body;
-
-    if (event.event === 'charge.success') {
-        const paymentData = event.data;
-        console.log(paymentData);
-
-        const customerEmail = paymentData.customer.email;
-        const customerName = paymentData.metadata?.custom_fields?.[0]?.value || 'Unknown';
-        const initialPayment = paymentData.metadata?.custom_fields?.[1]?.value * 1 || 0;
-        const totalPayment = paymentData.metadata?.custom_fields?.[2]?.value * 1 || 0;
-        const balance = paymentData.metadata?.custom_fields?.[3]?.value * 1 || 0;
-        const duration = paymentData.metadata?.custom_fields?.[4]?.value || 'Unknown';
-        const checkin = paymentData.metadata?.custom_fields?.[5]?.value || 'Unknown';
-        const checkout = paymentData.metadata?.custom_fields?.[6]?.value || 'Unknown';
-        const roomName = paymentData.metadata?.custom_fields?.[7]?.value || 'Unknown';
-        const roomPrice = paymentData.metadata?.custom_fields?.[8]?.value * 1 || 0;
-        const status = paymentData.status;
-
-        try {
-            await db.execute(
-                `INSERT INTO bookings 
-                 (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, room_price, status) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                [customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status]
-            );
-            console.log('Payment saved from webhook');
-        } catch (err) {
-            console.error('DB error from webhook:', err);
-        }
-    }
-    res.sendStatus(200);
+  } else {
+    console.log(`Unhandled webhook event: ${event.event}`);
+    return res.sendStatus(200);
+  }
 });
 
+
 app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.send('Welcome to the Hotel Reservation App API');
+})
+
 app.use('/api/v1/payments', paymentRoute);
 app.use('/api/v1/hotels', hotelRoute);
 app.use('/api/v1/rooms', roomRoute);
 app.use('/api/v1/users', userRoute);
+
+
+
 
 app.use((req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on the server`, 404));
