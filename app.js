@@ -56,7 +56,7 @@ app.post('/paystack/webhook', express.json({
       await pool.query(
         `INSERT INTO bookings 
          (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, price, status) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (1$, 2$, 3$, 4$, 5$, 6$, 7$, 8$, 9$, 10$, 11$)`,
         [customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status]
       );
       console.log('Payment saved from webhook');
