@@ -27,7 +27,7 @@ export const makePayment = async (req, res, next) => {
         if (!room) return next(new AppError('room not found', 404));
 
         const customerName = `${customer.firstname} ${customer.lastname}`;
-        const callback_url = `https://hotel-app-frontend-pxid.onrender.com/api/v1/payment/checkTransactionStatus`;
+        const callback_url = `https://hotel-reservation-app-79j3.onrender.com/api/v1/payments/`;
 
         const params = JSON.stringify({
             email,

@@ -7,7 +7,7 @@ import paymentRoute from './routes/paymentRoute.js';
 import hotelRoute from './routes/hotelRoute.js';
 import errHandler from './controllers/errorController.js';
 import AppError from './utils/appError.js';
-import db from './database/db.js'; // Assuming your db connection is here
+import pool from './database/db.js'; // Assuming your db connection is here
 
 const app = express();
 
@@ -53,7 +53,7 @@ app.post('/paystack/webhook', express.json({
     const status          = data.status;
 
     try {
-      await db.execute(
+      await pool.query(
         `INSERT INTO bookings 
          (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, room_price, status) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
