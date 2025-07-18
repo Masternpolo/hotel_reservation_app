@@ -5,20 +5,25 @@ import AppError from '../utils/appError.js';
 
 
 export const makePayment = async (req, res, next) => {
-    
+
     let { amount, duration, checkin, checkout, roomId, roomPrice } = req.body;
     let email = req.user.email;
     email = email.trim().toLowerCase();
-    
+
 
     if (!amount || !duration || !checkin || !checkout || !roomId || !email, !roomPrice) {
         return next(new AppError('Please provide all required fields', 400));
     }
-    amount = amount * 100;
-    duration = duration * 1
-    const initialPayment = parseInt(amount) * 100;
+    console.log(new Date(checkin), new Date(checkout));
+    
+    const initialPayment = parseInt(amount);
     const totalPayment = initialPayment * duration;
     const balance = totalPayment - initialPayment;
+    amount = amount * 100;
+    duration = duration * 1
+    checkin = new Date(checkin)
+    checkout = new Date(checkout)
+
 
     try {
         const customer = await userModel.findUserByEmail(email);
@@ -50,6 +55,19 @@ export const makePayment = async (req, res, next) => {
                 ]
             }
         });
+
+        console.log(
+            customerName,
+            initialPayment,
+            totalPayment,
+            balance,
+            duration,
+            checkin,
+            checkout,
+            room.name,
+            room.price * 1
+        );
+
 
         const options = {
             hostname: 'api.paystack.co',
@@ -102,7 +120,7 @@ export const checkTransactionStatus = async (req, res, next) => {
                 const response = JSON.parse(data);
 
                 if (response.status && response.data.status === 'success') {
-                     res.json({
+                    res.json({
                         status: 'success',
                         message: 'Payment successful',
                     })
