@@ -45,12 +45,22 @@ app.post('/paystack/webhook', express.json({
         const initialPayment = Number(customFields[1]?.value) || 0;
         const totalPayment = Number(customFields[2]?.value) || 0;
         const balance = Number(customFields[3]?.value) || 0;
-        const duration = customFields[4]?.value || 'Unknown';
-        const checkin = customFields[5]?.value || 'Unknown';
-        const checkout = customFields[6]?.value || 'Unknown';
-        const roomName = customFields[7]?.value || 'Unknown';
+        const duration = customFields[4]?.value || 0;
+        const checkin = customFields[5]?.value || 0;
+        const checkout = customFields[6]?.value || 0;
+        const roomName = customFields[7]?.value || 0;
         const roomPrice = Number(customFields[8]?.value) || 0;
         const status = data.status;
+
+        // customerName,
+        //                 initialPayment,
+        //                 totalPayment,
+        //                 balance,
+        //                 duration,
+        //                 checkin,
+        //                 checkout,
+        //                 roomName: room.name,
+        //                 roomPrice: room.price
 
         try {
             const sql = `INSERT INTO bookings 

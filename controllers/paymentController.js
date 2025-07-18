@@ -15,6 +15,7 @@ export const makePayment = async (req, res, next) => {
         return next(new AppError('Please provide all required fields', 400));
     }
     amount = amount * 100;
+    duration = duration * 1
     const initialPayment = parseInt(amount) * 100;
     const totalPayment = initialPayment * duration;
     const balance = totalPayment - initialPayment;
@@ -44,7 +45,7 @@ export const makePayment = async (req, res, next) => {
                         checkin,
                         checkout,
                         roomName: room.name,
-                        roomPrice: room.price
+                        roomPrice: room.price * 1
                     }
                 ]
             }
