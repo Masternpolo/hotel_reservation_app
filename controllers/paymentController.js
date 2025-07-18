@@ -15,7 +15,7 @@ export const makePayment = async (req, res, next) => {
         return next(new AppError('Please provide all required fields', 400));
     }
     console.log(new Date(checkin), new Date(checkout));
-    
+
     const initialPayment = parseInt(amount);
     const totalPayment = initialPayment * duration;
     const balance = totalPayment - initialPayment;
@@ -42,32 +42,54 @@ export const makePayment = async (req, res, next) => {
             metadata: {
                 custom_fields: [
                     {
-                        customerName,
-                        initialPayment,
-                        totalPayment,
-                        balance,
-                        duration,
-                        checkin,
-                        checkout,
-                        roomName: room.name,
-                        roomPrice: room.price * 1
+                        display_name: 'Customer Name',
+                        variable_name: 'customer_name',
+                        value: customerName
+                    },
+                    {
+                        display_name: 'Initial Payment',
+                        variable_name: 'initial_payment',
+                        value: initialPayment
+                    },
+                    {
+                        display_name: 'Total Payment',
+                        variable_name: 'total_payment',
+                        value: totalPayment
+                    },
+                    {
+                        display_name: 'Balance',
+                        variable_name: 'balance',
+                        value: balance
+                    },
+                    {
+                        display_name: 'Duration',
+                        variable_name: 'duration',
+                        value: duration
+                    },
+                    {
+                        display_name: 'Check-in Date',
+                        variable_name: 'checkin',
+                        value: checkin.toISOString()
+                    },
+                    {
+                        display_name: 'Checkout Date',
+                        variable_name: 'checkout',
+                        value: checkout.toISOString()
+                    },
+                    {
+                        display_name: 'Room Name',
+                        variable_name: 'room_name',
+                        value: room.name
+                    },
+                    {
+                        display_name: 'Room Price',
+                        variable_name: 'room_price',
+                        value: room.price * 1
                     }
                 ]
             }
+
         });
-
-        console.log(
-            customerName,
-            initialPayment,
-            totalPayment,
-            balance,
-            duration,
-            checkin,
-            checkout,
-            room.name,
-            room.price * 1
-        );
-
 
         const options = {
             hostname: 'api.paystack.co',

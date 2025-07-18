@@ -38,24 +38,23 @@ app.post('/paystack/webhook', express.json({
 
     if (event.event === 'charge.success') {
         const data = event.data;
-        const customFields = data.metadata?.custom_fields || [];
 
-        const customerEmail = data.customer.email;
-        const customerName = customFields[0]?.value || 'Unknown';
-        const initialPayment = Number(customFields[1]?.value) || 0;
-        const totalPayment = Number(customFields[2]?.value) || 0;
-        const balance = Number(customFields[3]?.value) || 0;
-        const duration = customFields[4]?.value || 0;
-        const checkin = customFields[5]?.value || 0;
-        const checkout = customFields[6]?.value || 0;
-        const roomName = customFields[7]?.value || 0;
-        const roomPrice = Number(customFields[8]?.value) || 0;
+        const getField = (key) => {
+            data.metadata?.custom_fields?.find(data => data.variable_name === key)?.value;}
+
+        const customerName = getField('customer_name') || 'Unknown';
+        const initialPayment = Number(getField('initial_payment')) || 0;
+        const totalPayment = Number(getField('total_payment')) || 0;
+        const balance = Number(getField('balance')) || 0;
+        const duration = Number(getField('duration')) || 0;
+        const checkin = getField('checkin') || null;
+        const checkout = getField('checkout') || null;
+        const roomName = getField('room_name') || 'Unknown Room';
+        const roomPrice = Number(getField('room_price')) || 0;
         const status = data.status;
-
 
         console.log(customerName, customerEmail, initialPayment, totalPayment, balance, duration, checkin, checkout, roomName, roomPrice, status)
 
-        
         try {
             const sql = `INSERT INTO bookings 
          (customer_name, customer_email, initial_payment, total_payment, balance, duration, checkin, checkout, room_name, price, status) 
