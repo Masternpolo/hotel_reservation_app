@@ -1,29 +1,7 @@
 import pool from '../database/db.js';
 import bcrypt from 'bcryptjs';
 
-// Find hotel by owner's name
-export const findUserByOwner = async (name) => {
-    try {
-        const query = 'SELECT * FROM hotels WHERE owner = $1';
-        const value = [name];
-        const result = await pool.query(query, value);
-        return result.rows[0] || null;
-    } catch (err) {
-        throw err;
-    }
-};
 
-// Find hotel by email
-export const findHotelByEmail = async (email) => {
-    try {
-        const query = 'SELECT * FROM hotels WHERE email = $1';
-        const values = [email];
-        const result = await pool.query(query, values);
-        return result.rows[0] || null;
-    } catch (err) {
-        throw err;
-    }
-};
 
 // Register hotel
 export const register = async (duration, checkin, checkout, email, name, initial, total, balance, roomname, roomtpye) => {

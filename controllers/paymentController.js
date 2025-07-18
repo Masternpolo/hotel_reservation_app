@@ -5,9 +5,6 @@ import AppError from '../utils/appError.js';
 
 
 export const makePayment = async (req, res, next) => {
-    console.log('inside makePayment');
-    console.log(req.user);
-    
     
     let { amount, duration, checkin, checkout, roomId, roomPrice } = req.body;
     let email = req.user.email;
@@ -104,7 +101,7 @@ export const checkTransactionStatus = async (req, res, next) => {
                 const response = JSON.parse(data);
 
                 if (response.status && response.data.status === 'success') {
-                    res.json({
+                     res.json({
                         status: 'success',
                         message: 'Payment successful',
                     })
